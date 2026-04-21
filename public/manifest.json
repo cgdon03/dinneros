@@ -1,0 +1,20 @@
+{
+  "name": "DinnerOS - AI Dinner Planner",
+  "short_name": "DinnerOS",
+  "description": "No more what is for dinner. AI-powered meal planning for your family.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2D4A3E",
+  "theme_color": "#2D4A3E",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "lifestyle", "productivity"],
+  "lang": "en-US"
+}
