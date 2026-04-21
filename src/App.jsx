@@ -269,4 +269,4 @@ export default function App() {
       const prefs = Object.values(obSel).join(", ") || "family";
       const txt = await groq([
         {role:"system",content:"You are a meal planning assistant. Return ONLY valid JSON with no markdown and no code fences."},
-        {role:"user",content:'Gene
+        {role:"user",content: `Gen
