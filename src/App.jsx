@@ -176,20 +176,11 @@ const MEALS0 = [
   [null,"Shakshuka",null],
 ];
 
-const PANTRY = [
-  {e:"🍚",n:"Basmati Rice",s:"good"},{e:"🧄",n:"Garlic",s:"good"},
-  {e:"🫒",n:"Olive Oil",s:"low"},{e:"🥫",n:"Canned Tomatoes",s:"good"},
-  {e:"🧅",n:"Onions",s:"low"},{e:"🌶️",n:"Chili Flakes",s:"good"},
-  {e:"🥚",n:"Eggs",s:"low"},{e:"🧈",n:"Butter",s:"out"},
-  {e:"🍋",n:"Lemons",s:"good"},{e:"🥩",n:"Ground Turkey",s:"out"},
-  {e:"🧀",n:"Parmesan",s:"good"},{e:"🥦",n:"Broccoli",s:"low"},
-];
-
 const GRO0 = {
-  Produce:[{n:"Asparagus",q:"1 bunch",c:false},{n:"Cherry Tomatoes",q:"1 pint",c:false},{n:"Lemons",q:"4",c:true},{n:"Ginger",q:"1 piece",c:false}],
-  Protein:[{n:"Salmon Fillets",q:"4 pieces",c:false},{n:"Chicken Thighs",q:"2 lbs",c:false},{n:"Ground Turkey",q:"1 lb",c:false}],
-  Pantry:[{n:"Basmati Rice",q:"2 cups",c:true},{n:"Tikka Masala Paste",q:"1 jar",c:false},{n:"Coconut Milk",q:"1 can",c:false}],
-  Dairy:[{n:"Butter",q:"1 stick",c:false},{n:"Plain Yogurt",q:"1 cup",c:false}],
+  Produce:[{n:"Asparagus",q:"1 bunch",c:false},{n:"Cherry Tomatoes",q:"1 pint",c:false}],
+  Protein:[{n:"Salmon Fillets",q:"4 pieces",c:false}],
+  Pantry:[{n:"Basmati Rice",q:"2 cups",c:true}],
+  Dairy:[{n:"Butter",q:"1 stick",c:false}],
 };
 
 async function groq(messages) {
@@ -207,31 +198,19 @@ export default function App() {
   const [obStep, setObStep] = useState(0);
   const [obSel, setObSel] = useState({});
   const [tab, setTab] = useState("planner");
-  const [pw, setPw] = useState(false);
-  const [plan, setPlan] = useState("annual");
   const [pro, setPro] = useState(false);
   const [meals, setMeals] = useState(MEALS0);
   const [loadW, setLoadW] = useState(false);
-  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant. Ask me anything!"}]);
+  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant."}]);
   const [inp, setInp] = useState("");
-  const [chatLoad, setChatLoad] = useState(false);
   const [gro, setGro] = useState(GRO0);
-  const [selDay, setSelDay] = useState(null);
   const end = useRef(null);
 
-  useEffect(() => {
-    if (localStorage.getItem("pro") === "1") setPro(true);
-  }, []);
-
   const genWeek = async () => {
-    if (!pro) { setPw(true); return; }
     setLoadW(true);
     try {
       const prefs = Object.values(obSel).join(", ");
-      const txt = await groq([
-        {role:"system",content:"Return JSON for a 7-day meal plan."},
-        {role:"user",content: `Generate a weekly meal plan for ${prefs}.`}
-      ]);
+      const txt = await groq([{role:"user",content: `Generate a plan for ${prefs}.`}]);
       if (txt) setMeals(JSON.parse(txt));
     } catch (e) { console.error(e); }
     finally { setLoadW(false); }
@@ -256,13 +235,7 @@ export default function App() {
             <p>{STEPS[obStep].h}</p>
             <div className="oopts">
               {STEPS[obStep].opts.map(o => (
-                <button 
-                  key={o} 
-                  className={`oopt ${obSel[obStep] === o ? 'on' : ''}`}
-                  onClick={() => setObSel({...obSel, [obStep]: o})}
-                >
-                  {o}
-                </button>
+                <button key={o} className={`oopt ${obSel[obStep] === o ? 'on' : ''}`} onClick={() => setObSel({...obSel, [obStep]: o})}>{o}</button>
               ))}
             </div>
             <button className="onext" onClick={handleNext}>Next Step</button>
@@ -271,18 +244,12 @@ export default function App() {
       )}
 
       <nav className="nav">
-        <div className="logo">
-          <div className="logo-box">🥘</div>
-          <div className="logo-text">Dinner<span>OS</span></div>
-        </div>
+        <div className="logo"><div className="logo-box">🥘</div><div className="logo-text">Dinner<span>OS</span></div></div>
         <div className="nav-tabs">
           <button onClick={() => setTab("planner")} className={`tab ${tab === "planner" ? 'on' : ''}`}>Planner</button>
           <button onClick={() => setTab("pantry")} className={`tab ${tab === "pantry" ? 'on' : ''}`}>Pantry</button>
         </div>
-        <div className="nav-right">
-          {pro && <span className="pro-badge">PRO</span>}
-          <div className="avi">ME</div>
-        </div>
+        <div className="nav-right">{pro && <span className="pro-badge">PRO</span>}<div className="avi">ME</div></div>
       </nav>
 
       <main className="main">
@@ -291,4 +258,21 @@ export default function App() {
             <header className="hero">
               <div className="eyebrow">Dinner is served</div>
               <h1 className="h1">Weekly <em>Planner</em></h1>
-              <p className="sub">Personalized meals based o
+              <button className="btn" onClick={genWeek} disabled={loadW}>{loadW ? <span className="spin"></span> : "✨ Generate Week"}</button>
+            </header>
+            <div className="week">
+              {DAYS.map((d, i) => (
+                <div key={d} className={`day ${i === TOD ? 'today' : ''}`}>
+                  <div className="dlbl">{d}</div>
+                  <div className="mpill">{meals[i][0] || "No meal"}</div>
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <div className="pantry-grid"><p>Pantry coming soon...</p></div>
+        )}
+      </main>
+    </div>
+  );
+}
