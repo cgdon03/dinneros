@@ -192,11 +192,6 @@ const GRO0 = {
   Dairy:[{n:"Butter",q:"1 stick",c:false},{n:"Plain Yogurt",q:"1 cup",c:false}],
 };
 
-const RCP = {
-  ings:["4 salmon fillets (6 oz each)","1 bunch asparagus, trimmed","3 tbsp olive oil","4 garlic cloves, minced","1 lemon sliced","1 tsp smoked paprika","Salt and pepper to taste","Fresh dill to garnish"],
-  steps:["Preheat oven to 425F. Line a sheet pan with parchment paper.","Toss asparagus with 1.5 tbsp olive oil, salt and pepper. Spread on pan.","Pat salmon dry. Mix remaining oil with garlic and paprika. Rub over salmon.","Nestle salmon among asparagus. Top with lemon slices.","Roast 12-15 min until salmon flakes easily.","Garnish with dill and a squeeze of lemon. Serve immediately."],
-};
-
 async function groq(messages) {
   const r = await fetch(API, {
     method: "POST",
@@ -217,56 +212,83 @@ export default function App() {
   const [pro, setPro] = useState(false);
   const [meals, setMeals] = useState(MEALS0);
   const [loadW, setLoadW] = useState(false);
-  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant. Ask me anything - recipe ideas, what to cook with what is in your fridge, substitutions, anything!"}]);
+  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant. Ask me anything!"}]);
   const [inp, setInp] = useState("");
   const [chatLoad, setChatLoad] = useState(false);
   const [gro, setGro] = useState(GRO0);
-  const [groLoad, setGroLoad] = useState(false);
   const [selDay, setSelDay] = useState(null);
-  const [showR, setShowR] = useState(false);
-  const [ibanner, setIbanner] = useState(false);
-  const [iprompt, setIprompt] = useState(null);
-  const [sbanner, setSbanner] = useState(false);
   const end = useRef(null);
 
   useEffect(() => {
     if (localStorage.getItem("pro") === "1") setPro(true);
-    const p = new URLSearchParams(window.location.search);
-    if (p.get("success") === "1") {
-      setPro(true);
-      localStorage.setItem("pro","1");
-      setSbanner(true);
-      window.history.replaceState({},"",window.location.pathname);
-      setTimeout(() => setSbanner(false), 5000);
-    }
   }, []);
-
-  useEffect(() => {
-    const h = (e) => { e.preventDefault(); setIprompt(e); setIbanner(true); };
-    window.addEventListener("beforeinstallprompt", h);
-    return () => window.removeEventListener("beforeinstallprompt", h);
-  }, []);
-
-  useEffect(() => { end.current && end.current.scrollIntoView({behavior:"smooth"}); }, [msgs]);
-
-  const install = async () => {
-    if (!iprompt) return;
-    iprompt.prompt();
-    const {outcome} = await iprompt.userChoice;
-    if (outcome === "accepted") setIbanner(false);
-  };
-
-  const subscribe = () => {
-    const url = plan === "annual" ? STRIPE_YR : STRIPE_MO;
-    if (!url) { alert("Stripe not configured yet."); return; }
-    window.location.href = url + "?success_url=" + encodeURIComponent(window.location.origin + "/?success=1");
-  };
 
   const genWeek = async () => {
     if (!pro) { setPw(true); return; }
     setLoadW(true);
     try {
-      const prefs = Object.values(obSel).join(", ") || "family";
+      const prefs = Object.values(obSel).join(", ");
       const txt = await groq([
-        {role:"system",content:"You are a meal planning assistant. Return ONLY valid JSON with no markdown and no code fences."},
-        {role:"user",content: `Gen
+        {role:"system",content:"Return JSON for a 7-day meal plan."},
+        {role:"user",content: `Generate a weekly meal plan for ${prefs}.`}
+      ]);
+      if (txt) setMeals(JSON.parse(txt));
+    } catch (e) { console.error(e); }
+    finally { setLoadW(false); }
+  };
+
+  const handleNext = () => {
+    if (obStep < STEPS.length - 1) setObStep(s => s + 1);
+    else setOb(false);
+  };
+
+  return (
+    <div className="app">
+      <style>{css}</style>
+      
+      {ob && (
+        <div className="oboard">
+          <div className="ocard">
+            <div className="oprog">
+              {STEPS.map((_, i) => <div key={i} className={`odot ${i <= obStep ? 'on' : ''}`} />)}
+            </div>
+            <h2>{STEPS[obStep].q}</h2>
+            <p>{STEPS[obStep].h}</p>
+            <div className="oopts">
+              {STEPS[obStep].opts.map(o => (
+                <button 
+                  key={o} 
+                  className={`oopt ${obSel[obStep] === o ? 'on' : ''}`}
+                  onClick={() => setObSel({...obSel, [obStep]: o})}
+                >
+                  {o}
+                </button>
+              ))}
+            </div>
+            <button className="onext" onClick={handleNext}>Next Step</button>
+          </div>
+        </div>
+      )}
+
+      <nav className="nav">
+        <div className="logo">
+          <div className="logo-box">🥘</div>
+          <div className="logo-text">Dinner<span>OS</span></div>
+        </div>
+        <div className="nav-tabs">
+          <button onClick={() => setTab("planner")} className={`tab ${tab === "planner" ? 'on' : ''}`}>Planner</button>
+          <button onClick={() => setTab("pantry")} className={`tab ${tab === "pantry" ? 'on' : ''}`}>Pantry</button>
+        </div>
+        <div className="nav-right">
+          {pro && <span className="pro-badge">PRO</span>}
+          <div className="avi">ME</div>
+        </div>
+      </nav>
+
+      <main className="main">
+        {tab === "planner" ? (
+          <>
+            <header className="hero">
+              <div className="eyebrow">Dinner is served</div>
+              <h1 className="h1">Weekly <em>Planner</em></h1>
+              <p className="sub">Personalized meals based o
