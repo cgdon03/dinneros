@@ -274,6 +274,19 @@ export default function App() {
     setLoadW(true);
     try {
       var prefs = Object.values(obSel).join(", ") || "family";
+      var prompt = "Create a 7-day dinner plan for: " + prefs + ". ";
+      prompt += "Respond with ONLY a JSON object, no markdown, no explanation. ";
+      prompt += "Format: meals property containing array of 7 arrays, each inner array has a meal name string then two nulls. ";
+      prompt += "Example format: {meals: [['Pasta',null,null],['Tacos',null,null],['Salmon',null,null],['Pizza',null,null],['Curry',null,null],['Ramen',null,null],['Steak',null,null]]}";
       var txt = await callGroq([
         {role:"system",content:"You are a meal planning assistant. Return ONLY a valid JSON object. No markdown. No explanation. No code fences."},
-        {role:"user",content:"Create a 7-d
+        {role:"user",content:prompt}
+      ]);
+      var clean = txt.replace(/```json/g,"").replace(/```/g,"").trim();
+      var parsed = JSON.parse(clean);
+      if (parsed && parsed.meals && parsed.meals.length === 7) {
+        setMeals(parsed.meals);
+      }
+    } catch(e) { console.error("genWeek error:",e); }
+    setLoadW(false);
+  }
