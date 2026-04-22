@@ -25,7 +25,7 @@ body{font-family:'DM Sans',sans-serif;background:#FAF7F2;color:#1C1C1E;-webkit-f
 .nav-right{display:flex;align-items:center;gap:8px}
 .pro-badge{background:linear-gradient(135deg,#D4A843,#C97B4B);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px}
 .avi{width:32px;height:32px;background:linear-gradient(135deg,#2D4A3E,#3D6356);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:600}
-.btn{background:#C97B4B;color:#fff;border:none;padding:8px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(201,123,75,.3)}
+.btn{background:#C97B4B;color:#fff;border:none;padding:8px 16px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(201,123,75,.3)}
 .btn:hover{background:#A85E2E;transform:translateY(-1px)}
 .btn:disabled{opacity:.6;transform:none;cursor:not-allowed}
 .btn-sm{padding:5px 12px;font-size:12px}
@@ -35,7 +35,7 @@ body{font-family:'DM Sans',sans-serif;background:#FAF7F2;color:#1C1C1E;-webkit-f
 .h1{font-family:'Playfair Display',serif;font-size:clamp(32px,5vw,54px);font-weight:700;line-height:1.12;color:#1C1C1E;margin-bottom:14px;letter-spacing:-1px}
 .h1 em{color:#C97B4B;font-style:italic}
 .sub{font-size:16px;color:#8A8A8E;max-width:460px;margin:0 auto 28px;line-height:1.6}
-.stats{display:flex;justify-content:center;gap:32px}
+.stats{display:flex;justify-content:center;gap:32px;margin-bottom:8px}
 .stat-num{font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:#1C1C1E}
 .stat-lbl{font-size:11px;color:#8A8A8E}
 .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
@@ -125,7 +125,7 @@ body{font-family:'DM Sans',sans-serif;background:#FAF7F2;color:#1C1C1E;-webkit-f
 .ppr span{font-family:'DM Sans',sans-serif;font-size:11px;color:#8A8A8E;font-weight:400}
 .psave{font-size:10px;color:#2D4A3E;font-weight:600;margin-top:3px}
 .pcta{width:100%;background:linear-gradient(135deg,#C97B4B,#A85E2E);color:#fff;border:none;padding:15px;border-radius:13px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(201,123,75,.4)}
-.pcta:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(201,123,75,.45)}
+.pcta:hover{transform:translateY(-2px)}
 .pdis{width:100%;background:none;border:none;color:#8A8A8E;font-size:12px;margin-top:10px;cursor:pointer;font-family:'DM Sans',sans-serif}
 .ptrust{font-size:10px;color:#8A8A8E;text-align:center;margin-top:9px}
 .oboard{position:fixed;inset:0;background:#2D4A3E;z-index:300;display:flex;align-items:center;justify-content:center}
@@ -176,21 +176,43 @@ const MEALS0 = [
   [null,"Shakshuka",null],
 ];
 
+const PANTRY = [
+  {e:"🍚",n:"Basmati Rice",s:"good"},{e:"🧄",n:"Garlic",s:"good"},
+  {e:"🫒",n:"Olive Oil",s:"low"},{e:"🥫",n:"Canned Tomatoes",s:"good"},
+  {e:"🧅",n:"Onions",s:"low"},{e:"🌶️",n:"Chili Flakes",s:"good"},
+  {e:"🥚",n:"Eggs",s:"low"},{e:"🧈",n:"Butter",s:"out"},
+  {e:"🍋",n:"Lemons",s:"good"},{e:"🥩",n:"Ground Turkey",s:"out"},
+  {e:"🧀",n:"Parmesan",s:"good"},{e:"🥦",n:"Broccoli",s:"low"},
+];
+
 const GRO0 = {
-  Produce:[{n:"Asparagus",q:"1 bunch",c:false},{n:"Cherry Tomatoes",q:"1 pint",c:false}],
-  Protein:[{n:"Salmon Fillets",q:"4 pieces",c:false}],
-  Pantry:[{n:"Basmati Rice",q:"2 cups",c:true}],
-  Dairy:[{n:"Butter",q:"1 stick",c:false}],
+  Produce:[{n:"Asparagus",q:"1 bunch",c:false},{n:"Cherry Tomatoes",q:"1 pint",c:false},{n:"Lemons",q:"4",c:true},{n:"Ginger",q:"1 piece",c:false}],
+  Protein:[{n:"Salmon Fillets",q:"4 pieces",c:false},{n:"Chicken Thighs",q:"2 lbs",c:false},{n:"Ground Turkey",q:"1 lb",c:false}],
+  Pantry:[{n:"Basmati Rice",q:"2 cups",c:true},{n:"Tikka Masala Paste",q:"1 jar",c:false},{n:"Coconut Milk",q:"1 can",c:false}],
+  Dairy:[{n:"Butter",q:"1 stick",c:false},{n:"Plain Yogurt",q:"1 cup",c:false}],
 };
 
-async function groq(messages) {
-  const r = await fetch(API, {
-    method: "POST",
-    headers: {"Content-Type":"application/json","Authorization":"Bearer " + GROQ_KEY},
-    body: JSON.stringify({model:MODEL, max_tokens:1000, messages}),
-  });
-  const d = await r.json();
-  return d.choices && d.choices[0] && d.choices[0].message ? d.choices[0].message.content : "";
+const RCP = {
+  ings:["4 salmon fillets (6 oz each)","1 bunch asparagus, trimmed","3 tbsp olive oil","4 garlic cloves, minced","1 lemon sliced","1 tsp smoked paprika","Salt and pepper to taste","Fresh dill to garnish"],
+  steps:["Preheat oven to 425F. Line a sheet pan with parchment paper.","Toss asparagus with 1.5 tbsp olive oil, salt and pepper. Spread on pan.","Pat salmon dry. Mix remaining oil with garlic and paprika. Rub over salmon.","Nestle salmon among asparagus. Top with lemon slices.","Roast 12-15 min until salmon flakes easily.","Garnish with dill and a squeeze of lemon. Serve immediately."],
+};
+
+async function callGroq(messages) {
+  try {
+    const r = await fetch(API, {
+      method: "POST",
+      headers: {"Content-Type":"application/json","Authorization":"Bearer " + GROQ_KEY},
+      body: JSON.stringify({model:MODEL, max_tokens:1000, messages:messages}),
+    });
+    const d = await r.json();
+    if (d.choices && d.choices[0] && d.choices[0].message) {
+      return d.choices[0].message.content || "";
+    }
+    return "";
+  } catch (err) {
+    console.error("Groq error:", err);
+    return "";
+  }
 }
 
 export default function App() {
@@ -198,81 +220,60 @@ export default function App() {
   const [obStep, setObStep] = useState(0);
   const [obSel, setObSel] = useState({});
   const [tab, setTab] = useState("planner");
+  const [pw, setPw] = useState(false);
+  const [plan, setPlan] = useState("annual");
   const [pro, setPro] = useState(false);
   const [meals, setMeals] = useState(MEALS0);
   const [loadW, setLoadW] = useState(false);
-  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant."}]);
+  const [msgs, setMsgs] = useState([{r:"ai",t:"Hi! I am your DinnerOS assistant. Ask me anything about dinner, recipes, or what to cook tonight!"}]);
   const [inp, setInp] = useState("");
+  const [chatLoad, setChatLoad] = useState(false);
   const [gro, setGro] = useState(GRO0);
+  const [groLoad, setGroLoad] = useState(false);
+  const [selDay, setSelDay] = useState(null);
+  const [showR, setShowR] = useState(false);
+  const [ibanner, setIbanner] = useState(false);
+  const [iprompt, setIprompt] = useState(null);
+  const [sbanner, setSbanner] = useState(false);
   const end = useRef(null);
 
-  const genWeek = async () => {
+  useEffect(function() {
+    if (localStorage.getItem("pro") === "1") setPro(true);
+    var p = new URLSearchParams(window.location.search);
+    if (p.get("success") === "1") {
+      setPro(true);
+      localStorage.setItem("pro","1");
+      setSbanner(true);
+      window.history.replaceState({},"",window.location.pathname);
+      setTimeout(function() { setSbanner(false); }, 5000);
+    }
+  }, []);
+
+  useEffect(function() {
+    function handler(e) {
+      e.preventDefault();
+      setIprompt(e);
+      setIbanner(true);
+    }
+    window.addEventListener("beforeinstallprompt", handler);
+    return function() { window.removeEventListener("beforeinstallprompt", handler); };
+  }, []);
+
+  useEffect(function() {
+    if (end.current) end.current.scrollIntoView({behavior:"smooth"});
+  }, [msgs]);
+
+  function subscribe() {
+    var url = plan === "annual" ? STRIPE_YR : STRIPE_MO;
+    if (!url) { alert("Stripe not configured yet."); return; }
+    window.location.href = url + "?success_url=" + encodeURIComponent(window.location.origin + "/?success=1");
+  }
+
+  async function genWeek() {
+    if (!pro) { setPw(true); return; }
     setLoadW(true);
     try {
-      const prefs = Object.values(obSel).join(", ");
-      const txt = await groq([{role:"user",content: `Generate a plan for ${prefs}.`}]);
-      if (txt) setMeals(JSON.parse(txt));
-    } catch (e) { console.error(e); }
-    finally { setLoadW(false); }
-  };
-
-  const handleNext = () => {
-    if (obStep < STEPS.length - 1) setObStep(s => s + 1);
-    else setOb(false);
-  };
-
-  return (
-    <div className="app">
-      <style>{css}</style>
-      
-      {ob && (
-        <div className="oboard">
-          <div className="ocard">
-            <div className="oprog">
-              {STEPS.map((_, i) => <div key={i} className={`odot ${i <= obStep ? 'on' : ''}`} />)}
-            </div>
-            <h2>{STEPS[obStep].q}</h2>
-            <p>{STEPS[obStep].h}</p>
-            <div className="oopts">
-              {STEPS[obStep].opts.map(o => (
-                <button key={o} className={`oopt ${obSel[obStep] === o ? 'on' : ''}`} onClick={() => setObSel({...obSel, [obStep]: o})}>{o}</button>
-              ))}
-            </div>
-            <button className="onext" onClick={handleNext}>Next Step</button>
-          </div>
-        </div>
-      )}
-
-      <nav className="nav">
-        <div className="logo"><div className="logo-box">🥘</div><div className="logo-text">Dinner<span>OS</span></div></div>
-        <div className="nav-tabs">
-          <button onClick={() => setTab("planner")} className={`tab ${tab === "planner" ? 'on' : ''}`}>Planner</button>
-          <button onClick={() => setTab("pantry")} className={`tab ${tab === "pantry" ? 'on' : ''}`}>Pantry</button>
-        </div>
-        <div className="nav-right">{pro && <span className="pro-badge">PRO</span>}<div className="avi">ME</div></div>
-      </nav>
-
-      <main className="main">
-        {tab === "planner" ? (
-          <>
-            <header className="hero">
-              <div className="eyebrow">Dinner is served</div>
-              <h1 className="h1">Weekly <em>Planner</em></h1>
-              <button className="btn" onClick={genWeek} disabled={loadW}>{loadW ? <span className="spin"></span> : "✨ Generate Week"}</button>
-            </header>
-            <div className="week">
-              {DAYS.map((d, i) => (
-                <div key={d} className={`day ${i === TOD ? 'today' : ''}`}>
-                  <div className="dlbl">{d}</div>
-                  <div className="mpill">{meals[i][0] || "No meal"}</div>
-                </div>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="pantry-grid"><p>Pantry coming soon...</p></div>
-        )}
-      </main>
-    </div>
-  );
-}
+      var prefs = Object.values(obSel).join(", ") || "family";
+      var txt = await callGroq([
+        {role:"system",content:"You are a meal planning assistant. Return ONLY a valid JSON object. No markdown. No explanation. No code fences."},
+        {role:"user",content:"Create a 7-d
